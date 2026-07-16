@@ -148,3 +148,14 @@ export async function createInterview(input: InterviewInput): Promise<Interview>
 
   return toInterview(page as PageObjectResponse);
 }
+
+export async function updateInterviewStatus(id: string, status: Status): Promise<Interview> {
+  const page = await notion.pages.update({
+    page_id: id,
+    properties: {
+      Status: { select: { name: status } },
+    },
+  });
+
+  return toInterview(page as PageObjectResponse);
+}

@@ -3,15 +3,36 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Interview, STATUS_OPTIONS } from "@/lib/notion";
-import StatusBadge from "./StatusBadge";
 
 type SortKey = "company" | "role" | "round" | "date" | "status";
 
-export default function InterviewsTable({ interviews }: { interviews: Interview[] }) {
+export default function InterviewsTable({ interviews: initialInterviews }: { interviews: Interview[] }) {
+  const [interviews, setInterviews] = useState(initialInterviews);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortAsc, setSortAsc] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  async function handleStatusChange(id: string, status: string) {
+    const previous = interviews;
+    setUpdatingId(id);
+    setInterviews((rows) => rows.map((r) => (r.id === id ? { ...r, status: status as Interview["status"] } : r)));
+
+    try {
+      const res = await fetch(`/api/interviews/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error("Failed to update status");
+    } catch {
+      setInterviews(previous);
+      alert("Could not update status. Please try again.");
+    } finally {
+      setUpdatingId(null);
+    }
+  }
 
   const filtered = useMemo(() => {
     let rows = interviews;
@@ -108,7 +129,19 @@ export default function InterviewsTable({ interviews }: { interviews: Interview[
                   {interview.date ?? "—"}
                 </td>
                 <td className="px-4 py-2">
-                  <StatusBadge status={interview.status} />
+                  <select
+                    value={interview.status}
+                    disabled={updatingId === interview.id}
+                    onChange={(e) => handleStatusChange(interview.id, e.target.value)}
+                    className="border rounded px-2 py-1 text-sm disabled:opacity-50"
+                  >
+                    <option value="">—</option>
+                    {STATUS_OPTIONS.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
                 </td>
                 <td className="px-4 py-2 max-w-xs truncate" title={interview.notes || undefined}>
                   {interview.notes || "—"}
