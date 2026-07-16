@@ -94,7 +94,8 @@ export default function InterviewsTable({ interviews }: { interviews: Interview[
                   {sortKey === col.key ? (sortAsc ? " ▲" : " ▼") : ""}
                 </th>
               ))}
-              <th className="text-left px-4 py-2 font-medium">Next Action</th>
+              <th className="text-left px-4 py-2 font-medium">Description</th>
+        
             </tr>
           </thead>
           <tbody>
@@ -109,6 +110,9 @@ export default function InterviewsTable({ interviews }: { interviews: Interview[
                 <td className="px-4 py-2">
                   <StatusBadge status={interview.status} />
                 </td>
+                <td className="px-4 py-2 max-w-xs truncate" title={interview.notes || undefined}>
+                  {interview.notes || "—"}
+                </td>
                 <td className="px-4 py-2 whitespace-nowrap">
                   {interview.nextActionDate ?? "—"}
                 </td>
@@ -116,7 +120,7 @@ export default function InterviewsTable({ interviews }: { interviews: Interview[
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                   No interviews found.
                 </td>
               </tr>
